@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email Signature Generator</title>
+<meta name="description" content="Vanderbilt Mortgage email signature generator — fill in your details and copy an Outlook-safe signature.">
+<style>
+  /* Tool chrome only. The SIGNATURE itself is built in JS with inline styles — see buildSignature(). */
+  :root {
+    --navy: #002846; --blue: #0071C8; --ink: #02121B; --muted: #627A8F;
+    --rule: #DCE6F3; --bg: #F3F6FA; --card: #ffffff; --border: #91A6BA;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.45; }
+  main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 24px; }
+  @media (min-width: 900px) { main { grid-template-columns: 22rem 1fr; align-items: start; } }
+  .card { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; }
+  h1 { font-size: 18px; margin: 0 0 4px; color: var(--navy); }
+  h2 { font-size: 16px; margin: 0 0 4px; color: var(--navy); }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 4px; }
+  input { width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--ink); background: #fff; }
+  input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
+  .hint { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+  .row { display: grid; grid-template-columns: 1fr 6rem; gap: 12px; }
+  .preview { border: 1px solid var(--rule); border-radius: 8px; background: #fff; padding: 24px; overflow-x: auto; color-scheme: light; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  button { font: inherit; font-size: 14px; font-weight: 600; padding: 9px 16px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; }
+  .primary { background: var(--blue); color: #fff; }
+  .primary:hover { background: #005ea6; }
+  .outline { background: #fff; color: var(--navy); border-color: var(--border); }
+  .ghost { background: transparent; color: var(--navy); }
+  .outline:hover, .ghost:hover { background: var(--rule); }
+  .stack { display: grid; gap: 24px; }
+  .notice { background: #FFF7E6; border: 1px solid #F0C36D; color: #5C3D00; border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-top: 12px; display: none; }
+  .notice.show { display: block; }
+  code { background: var(--bg); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+  .install p { font-size: 14px; margin: 0 0 10px; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--navy); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 14px; opacity: 0; transition: .2s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+  details summary { cursor: pointer; font-weight: 600; font-size: 14px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <section class="card">
+    <h1>Email signature</h1>
+    <p class="sub">Fill this in, then copy or download. Don’t edit the result inside Outlook — come back here and regenerate it.</p>
+    <form id="form" autocomplete="off">
+      <label for="name">Full name</label>
+      <input id="name" name="name" value="First Last">
+      <label for="title">Job title</label>
+      <input id="title" name="title" value="Job Title">
+      <label for="department">Department</label>
+      <input id="department" name="department" value="Department">
+      <div class="row">
+        <div><label for="phone">Phone</label><input id="phone" name="phone" type="tel" value="000-000-0000"></div>
+        <div><label for="extension">Ext.</label><input id="extension" name="extension" value="0000"></div>
+      </div>
+      <label for="nmls">Individual NMLS #</label>
+      <input id="nmls" name="nmls" value="000000">
+      <p class="hint">Leave blank if not licensed.</p>
+      <label for="licenses">State licenses</label>
+      <input id="licenses" name="licenses" value="AR: 000000 | CA: CA-DBO0000000 | CO: 0000000 | ID: MLO-0000000 | NM: 0000000 | NV: 000000 | OK: MLO00000">
+      <p class="hint">One line, separated by <code>|</code>. Shown after the NMLS #.</p>
+
+      <details>
+        <summary>Image hosting (advanced)</summary>
+        <label for="base">Hosted site URL</label>
+        <input id="base" name="base" placeholder="https://…">
+        <p class="hint">Where this page is published. The signature links to <code>/assets/vanderbilt-mortgage-logo.png</code> and <code>/assets/value-badges.png</code> there — email can’t embed files from your computer.</p>
+      </details>
+    </form>
+  </section>
+
+  <div class="stack">
+    <section class="card">
+      <h2>Preview</h2>
+      <p class="sub">Arial on purpose — recipients won’t have the brand font, and Outlook substitutes fonts it can’t find. Shown on white, which is what most inboxes use.</p>
+      <div id="preview" class="preview"></div>
+      <div class="actions">
+        <button class="primary" id="copy" type="button">Copy for Outlook</button>
+        <button class="outline" id="download" type="button">Download .htm</button>
+        <button class="ghost" id="source" type="button">Copy HTML source</button>
+      </div>
+      <div id="notice" class="notice">This page isn’t being served from an <code>https://</code> address, so the copied signature points its images at a placeholder. Publish the site (or set the hosted URL under “Image hosting”) before people use it.</div>
+    </section>
+
+    <section class="card install">
+      <h2>Installing it</h2>
+      <p><strong>Classic Outlook (Windows)</strong> — most reliable: click <em>Download .htm</em>, then put the file in <code>%APPDATA%\Microsoft\Signatures\</code>. Restart Outlook and pick it under File → Options → Mail → Signatures. Alternative: <em>Copy for Outlook</em>, open that same Signatures dialog, click into the editor, and paste.</p>
+      <p><strong>New Outlook, Outlook for Mac, Outlook on the web</strong> — <em>Copy for Outlook</em>, then Settings → Accounts → Signatures, click into the editor, paste.</p>
+      <p style="color:var(--muted)">Why it breaks when edited: Outlook re-saves the signature through Word’s HTML engine, which rewrites spacing and drops styles. Any change — even fixing a digit — should be made here and re-copied.</p>
+    </section>
+  </div>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ─── Signature template ──────────────────────────────────────────────────────
+// Classic Outlook on Windows renders with Word's engine: no CSS classes, no
+// flex/grid/max-width, and it rewrites the markup on save. What survives a paste
+// AND a later edit is a plain <table>, every style inline on every cell, pt
+// units, a web-safe font stack, and absolutely-hosted images with width/height
+// attributes. The skewed badges in the design can't be drawn in Outlook markup,
+// so they're one hosted PNG.
+const BLUE = '#0071C8', FONT = 'Arial, Helvetica, sans-serif', RULE = '#91A6BA';
+const LOGO = { path: '/assets/vanderbilt-mortgage-logo.png', w: 150, h: 54 };   // 600×216 @2x
+const BADGES = { path: '/assets/value-badges.png', w: 525, h: 34 };             // 1050×67 @2x
+
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const tel = s => s.replace(/[^\d+]/g, '');
+
+function buildSignature(f, base) {
+  const cell = (pt, lh, extra = '') =>
+    `font-family:${FONT};font-size:${pt}pt;line-height:${lh}pt;mso-line-height-rule:exactly;color:${BLUE};${extra}`;
+  const line = (text, extra = '') => `<tr><td style="${cell(11, 15, extra)}">${text}</td></tr>`;
+  const phone = f.phone ? `${esc(f.phone)}${f.extension ? ` x${esc(f.extension)}` : ''}` : '';
+  const phoneHref = f.phone ? `tel:${tel(f.phone)}${f.extension ? `,${tel(f.extension)}` : ''}` : '';
+  const legal2 = [f.nmls && `NMLS #${esc(f.nmls)}`, f.licenses && esc(f.licenses)].filter(Boolean).join(' | ');
+  const img = (a, alt) => `<img src="${base}${a.path}" width="${a.w}" height="${a.h}" alt="${alt}" style="display:block;border:0;width:${a.w}px;height:${a.h}px;" />`;
+
+  return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;${cell(11, 15)}">
+  <tr>
+    <td valign="middle" style="padding:0 18pt 0 0;">${img(LOGO, 'Vanderbilt Mortgage')}</td>
+    <td valign="middle" style="padding:0 0 0 18pt;border-left:1px solid ${RULE};">
+      <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
+        ${[
+          line(esc(f.name), 'font-weight:bold;font-size:14pt;line-height:18pt;'),
+          f.title && line(esc(f.title)),
+          f.department && line(esc(f.department)),
+          phone && line(`<a href="${phoneHref}" style="color:${BLUE};text-decoration:none;">${phone}</a>`),
+          line(`<a href="https://www.vmf.com" style="color:${BLUE};font-weight:bold;text-decoration:underline;">vmf.com</a>`, 'padding-top:8pt;'),
+        ].filter(Boolean).join('\n        ')}
+      </table>
+    </td>
+  </tr>
+  <tr><td colspan="2" style="padding-top:14pt;">${img(BADGES, 'Open doors. Be a home. Drive change. Do good. Earn trust.')}</td></tr>
+  <tr><td colspan="2" style="${cell(9, 13, 'padding-top:16pt;')}">Vanderbilt Mortgage and Finance, Inc. NMLS #1561</td></tr>
+  ${legal2 ? `<tr><td colspan="2" style="${cell(9, 13)}">${legal2}</td></tr>` : ''}
+</table>`;
+}
+
+const wrapDocument = table =>
+  `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Signature</title></head>\n<body style="margin:0;padding:0;background:#ffffff;">\n${table}\n</body></html>`;
+
+// ─── Page wiring ─────────────────────────────────────────────────────────────
+const form = document.getElementById('form');
+const preview = document.getElementById('preview');
+const notice = document.getElementById('notice');
+const toastEl = document.getElementById('toast');
+const KEY = 'vmf-signature-fields';
+
+function fields() { return Object.fromEntries(new FormData(form)); }
+function hostedBase(f) {
+  const typed = (f.base || '').trim().replace(/\/$/, '');
+  if (typed) return typed;
+  return location.protocol === 'https:' ? location.origin : '';
+}
+// Preview can use relative paths; the copied signature must use the hosted base.
+function previewBase() { return location.protocol.startsWith('http') ? location.origin : '.'; }
+
+function render() {
+  const f = fields();
+  preview.innerHTML = buildSignature(f, previewBase());
+  notice.classList.toggle('show', !hostedBase(f));
+  try { localStorage.setItem(KEY, JSON.stringify(f)); } catch {}
+}
+function outputHtml() {
+  const f = fields();
+  return buildSignature(f, hostedBase(f) || 'https://REPLACE-WITH-HOSTED-URL');
+}
+function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 2200); }
+
+form.addEventListener('input', render);
+
+document.getElementById('copy').addEventListener('click', async () => {
+  const f = fields();
+  const html = outputHtml();
+  const plain = [f.name, f.title, f.department, f.phone, 'vmf.com'].filter(Boolean).join('\n');
+  try {
+    // text/html on the clipboard is what makes Outlook paste a rendered table instead of code.
+    await navigator.clipboard.write([new ClipboardItem({
+      'text/html': new Blob([html], { type: 'text/html' }),
+      'text/plain': new Blob([plain], { type: 'text/plain' }),
+    })]);
+    toast('Copied — paste into Outlook’s signature editor');
+  } catch {
+    toast('Your browser blocked rich-text copy — use Download .htm');
+  }
+});
+document.getElementById('source').addEventListener('click', async () => {
+  await navigator.clipboard.writeText(outputHtml());
+  toast('HTML source copied');
+});
+document.getElementById('download').addEventListener('click', () => {
+  const f = fields();
+  const blob = new Blob([wrapDocument(outputHtml())], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${(f.name || 'signature').trim().replace(/\s+/g, '-')}.htm`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// restore last session
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if (saved) for (const [k, v] of Object.entries(saved)) { const el = form.elements[k]; if (el) el.value = v; }
+} catch {}
+render();
+</script>
+</body>
+</html>
