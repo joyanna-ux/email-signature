@@ -69,7 +69,7 @@
         <summary>Image hosting (advanced)</summary>
         <label for="base">Hosted site URL</label>
         <input id="base" name="base" placeholder="https://…">
-        <p class="hint">Where this page is published. The signature links to <code>/assets/vanderbilt-mortgage-logo.png</code> and <code>/assets/value-badges.png</code> there — email can’t embed files from your computer.</p>
+        <p class="hint">The folder this page is published in. The signature links to <code>assets/vanderbilt-mortgage-logo.png</code> and <code>assets/value-badges.png</code> there — email can’t embed files from your computer. Auto-detected when served over https.</p>
       </details>
     </form>
   </section>
@@ -106,8 +106,10 @@
 // attributes. The skewed badges in the design can't be drawn in Outlook markup,
 // so they're one hosted PNG.
 const BLUE = '#0071C8', FONT = 'Arial, Helvetica, sans-serif', RULE = '#91A6BA';
-const LOGO = { path: '/assets/vanderbilt-mortgage-logo.png', w: 150, h: 54 };   // 600×216 @2x
-const BADGES = { path: '/assets/value-badges.png', w: 525, h: 34 };             // 1050×67 @2x
+// Paths are relative to the page's own directory so the tool works at a domain
+// root AND under a subpath (e.g. GitHub Pages' /email-signature/).
+const LOGO = { path: 'assets/vanderbilt-mortgage-logo.png', w: 150, h: 54 };   // 600×216 @2x
+const BADGES = { path: 'assets/value-badges.png', w: 525, h: 34 };             // 1050×67 @2x
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const tel = s => s.replace(/[^\d+]/g, '');
@@ -153,13 +155,16 @@ const toastEl = document.getElementById('toast');
 const KEY = 'vmf-signature-fields';
 
 function fields() { return Object.fromEntries(new FormData(form)); }
+// The directory this page lives in, with a trailing slash — e.g.
+// https://host/ or https://host/email-signature/.
+const pageDir = () => new URL('.', location.href).href;
 function hostedBase(f) {
-  const typed = (f.base || '').trim().replace(/\/$/, '');
-  if (typed) return typed;
-  return location.protocol === 'https:' ? location.origin : '';
+  const typed = (f.base || '').trim();
+  if (typed) return typed.endsWith('/') ? typed : typed + '/';
+  return location.protocol === 'https:' ? pageDir() : '';
 }
-// Preview can use relative paths; the copied signature must use the hosted base.
-function previewBase() { return location.protocol.startsWith('http') ? location.origin : '.'; }
+// Preview can resolve relative to wherever the page is; the copied signature must use the hosted base.
+function previewBase() { return location.protocol.startsWith('http') ? pageDir() : ''; }
 
 function render() {
   const f = fields();
@@ -169,7 +174,7 @@ function render() {
 }
 function outputHtml() {
   const f = fields();
-  return buildSignature(f, hostedBase(f) || 'https://REPLACE-WITH-HOSTED-URL');
+  return buildSignature(f, hostedBase(f) || 'https://REPLACE-WITH-HOSTED-URL/');
 }
 function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 2200); }
 

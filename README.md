@@ -20,7 +20,8 @@ npx serve .
 
 Publish the folder as-is to Netlify, GitHub Pages, or any static host. When the
 page is served over `https://`, the generated signature automatically points its
-images at `https://<that-host>/assets/...`, which is what recipients' mail clients
+images at `<page URL>/assets/...` (works at a domain root or under a subpath such
+as GitHub Pages' `/email-signature/`), which is what recipients' mail clients
 load. Opened from `file://` or `localhost`, the page shows a warning and the
 copied signature uses a placeholder URL — set "Hosted site URL" under *Image
 hosting* to override.
