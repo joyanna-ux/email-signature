@@ -23,6 +23,9 @@
   input { width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--ink); background: #fff; }
   input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
   .hint { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+  .check { display: flex; align-items: center; gap: 8px; margin-top: 16px; cursor: pointer; }
+  .check input { width: auto; margin: 0; accent-color: var(--blue); }
+  #nmlsFields.off { display: none; }
   .row { display: grid; grid-template-columns: 1fr 6rem; gap: 12px; }
   .preview { border: 1px solid var(--rule); border-radius: 8px; background: #fff; padding: 24px; overflow-x: auto; color-scheme: light; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
@@ -58,12 +61,14 @@
         <div><label for="phone">Phone</label><input id="phone" name="phone" type="tel" value="000-000-0000"></div>
         <div><label for="extension">Ext.</label><input id="extension" name="extension" value="0000"></div>
       </div>
-      <label for="nmls">Individual NMLS #</label>
-      <input id="nmls" name="nmls" value="000000">
-      <p class="hint">Leave blank if not licensed.</p>
-      <label for="licenses">State licenses</label>
-      <input id="licenses" name="licenses" value="AR: 000000 | CA: CA-DBO0000000 | CO: 0000000 | ID: MLO-0000000 | NM: 0000000 | NV: 000000 | OK: MLO00000">
-      <p class="hint">One line, separated by <code>|</code>. Shown after the NMLS #.</p>
+      <label class="check"><input type="checkbox" id="showNmls" name="showNmls" checked> Show NMLS # and state licenses</label>
+      <div id="nmlsFields">
+        <label for="nmls">Individual NMLS #</label>
+        <input id="nmls" name="nmls" value="000000">
+        <label for="licenses">State licenses</label>
+        <input id="licenses" name="licenses" value="AR: 000000 | CA: CA-DBO0000000 | CO: 0000000 | ID: MLO-0000000 | NM: 0000000 | NV: 000000 | OK: MLO00000">
+        <p class="hint">One line, separated by <code>|</code>. Shown after the NMLS #. The company line (NMLS #1561) always stays.</p>
+      </div>
 
       <details>
         <summary>Image hosting (advanced)</summary>
@@ -120,27 +125,36 @@ function buildSignature(f, base) {
   const line = (text, extra = '') => `<tr><td style="${cell(11, 15, extra)}">${text}</td></tr>`;
   const phone = f.phone ? `${esc(f.phone)}${f.extension ? ` x${esc(f.extension)}` : ''}` : '';
   const phoneHref = f.phone ? `tel:${tel(f.phone)}${f.extension ? `,${tel(f.extension)}` : ''}` : '';
-  const legal2 = [f.nmls && `NMLS #${esc(f.nmls)}`, f.licenses && esc(f.licenses)].filter(Boolean).join(' | ');
-  const img = (a, alt) => `<img src="${base}${a.path}" width="${a.w}" height="${a.h}" alt="${alt}" style="display:block;border:0;width:${a.w}px;height:${a.h}px;" />`;
+  const legal2 = f.showNmls ? [f.nmls && `NMLS #${esc(f.nmls)}`, f.licenses && esc(f.licenses)].filter(Boolean).join(' | ') : '';
+  const img = (a, alt, extra = '') => `<img src="${base}${a.path}" width="${a.w}" height="${a.h}" alt="${alt}" style="display:block;border:0;width:${a.w}px;height:${a.h}px;${extra}" />`;
 
+  // The name block is its own nested table so the wider badge/legal rows below
+  // can't stretch its columns — that's what pushed the logo away from the rule.
+  // The logo cell is a fixed width and right-aligned so the wordmark's right
+  // edge sits a constant 18pt from the rule, mirroring the text's left edge.
+  const LOGO_CELL = LOGO.w + 24; // 150px + 18pt
   return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;${cell(11, 15)}">
-  <tr>
-    <td valign="middle" style="padding:0 18pt 0 0;">${img(LOGO, 'Vanderbilt Mortgage')}</td>
-    <td valign="middle" style="padding:0 0 0 18pt;border-left:1px solid ${RULE};">
-      <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
-        ${[
-          line(esc(f.name), 'font-weight:bold;font-size:14pt;line-height:18pt;'),
-          f.title && line(esc(f.title)),
-          f.department && line(esc(f.department)),
-          phone && line(`<a href="${phoneHref}" style="color:${BLUE};text-decoration:none;">${phone}</a>`),
-          line(`<a href="https://www.vmf.com" style="color:${BLUE};font-weight:bold;text-decoration:underline;">vmf.com</a>`, 'padding-top:8pt;'),
-        ].filter(Boolean).join('\n        ')}
-      </table>
-    </td>
-  </tr>
-  <tr><td colspan="2" style="padding-top:14pt;">${img(BADGES, 'Open doors. Be a home. Drive change. Do good. Earn trust.')}</td></tr>
-  <tr><td colspan="2" style="${cell(9, 13, 'padding-top:16pt;')}">Vanderbilt Mortgage and Finance, Inc. NMLS #1561</td></tr>
-  ${legal2 ? `<tr><td colspan="2" style="${cell(9, 13)}">${legal2}</td></tr>` : ''}
+  <tr><td style="padding:0;">
+    <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
+      <tr>
+        <td width="${LOGO_CELL}" align="right" valign="middle" style="width:${LOGO_CELL}px;padding:0 18pt 0 0;text-align:right;">${img(LOGO, 'Vanderbilt Mortgage', 'margin-left:auto;')}</td>
+        <td valign="middle" style="padding:0 0 0 18pt;border-left:1px solid ${RULE};">
+          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
+            ${[
+              line(esc(f.name), 'font-weight:bold;font-size:14pt;line-height:18pt;'),
+              f.title && line(esc(f.title)),
+              f.department && line(esc(f.department)),
+              phone && line(`<a href="${phoneHref}" style="color:${BLUE};text-decoration:none;">${phone}</a>`),
+              line(`<a href="https://www.vmf.com" style="color:${BLUE};font-weight:bold;text-decoration:underline;">vmf.com</a>`, 'padding-top:8pt;'),
+            ].filter(Boolean).join('\n            ')}
+          </table>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding-top:14pt;">${img(BADGES, 'Open doors. Be a home. Drive change. Do good. Earn trust.')}</td></tr>
+  <tr><td style="${cell(9, 13, 'padding-top:16pt;')}">Vanderbilt Mortgage and Finance, Inc. NMLS #1561</td></tr>
+  ${legal2 ? `<tr><td style="${cell(9, 13)}">${legal2}</td></tr>` : ''}
 </table>`;
 }
 
@@ -154,7 +168,11 @@ const notice = document.getElementById('notice');
 const toastEl = document.getElementById('toast');
 const KEY = 'vmf-signature-fields';
 
-function fields() { return Object.fromEntries(new FormData(form)); }
+function fields() {
+  const f = Object.fromEntries(new FormData(form));
+  f.showNmls = form.elements.showNmls.checked; // unchecked boxes are absent from FormData
+  return f;
+}
 // The directory this page lives in, with a trailing slash — e.g.
 // https://host/ or https://host/email-signature/.
 const pageDir = () => new URL('.', location.href).href;
@@ -168,6 +186,7 @@ function previewBase() { return location.protocol.startsWith('http') ? pageDir()
 
 function render() {
   const f = fields();
+  document.getElementById('nmlsFields').classList.toggle('off', !f.showNmls);
   preview.innerHTML = buildSignature(f, previewBase());
   notice.classList.toggle('show', !hostedBase(f));
   try { localStorage.setItem(KEY, JSON.stringify(f)); } catch {}
@@ -212,7 +231,10 @@ document.getElementById('download').addEventListener('click', () => {
 // restore last session
 try {
   const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
-  if (saved) for (const [k, v] of Object.entries(saved)) { const el = form.elements[k]; if (el) el.value = v; }
+  if (saved) for (const [k, v] of Object.entries(saved)) {
+    const el = form.elements[k]; if (!el) continue;
+    if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
+  }
 } catch {}
 render();
 </script>
