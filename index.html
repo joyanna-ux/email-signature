@@ -61,13 +61,14 @@
         <div><label for="phone">Phone</label><input id="phone" name="phone" type="tel" value="000-000-0000"></div>
         <div><label for="extension">Ext.</label><input id="extension" name="extension" value="0000"></div>
       </div>
-      <label class="check"><input type="checkbox" id="showNmls" name="showNmls" checked> Show NMLS # and state licenses</label>
+      <label class="check"><input type="checkbox" id="showNmls" name="showNmls" checked> Licensed (show NMLS #s)</label>
+      <p class="hint" style="margin-top:2px">Off = no NMLS lines at all, including the company NMLS #1561 line. Only licensed roles need them.</p>
       <div id="nmlsFields">
         <label for="nmls">Individual NMLS #</label>
         <input id="nmls" name="nmls" value="000000">
         <label for="licenses">State licenses</label>
         <input id="licenses" name="licenses" value="AR: 000000 | CA: CA-DBO0000000 | CO: 0000000 | ID: MLO-0000000 | NM: 0000000 | NV: 000000 | OK: MLO00000">
-        <p class="hint">One line, separated by <code>|</code>. Shown after the NMLS #. The company line (NMLS #1561) always stays.</p>
+        <p class="hint">One line, separated by <code>|</code>. Shown after the NMLS #.</p>
       </div>
 
       <details>
@@ -153,7 +154,7 @@ function buildSignature(f, base) {
     </table>
   </td></tr>
   <tr><td style="padding-top:14pt;">${img(BADGES, 'Open doors. Be a home. Drive change. Do good. Earn trust.')}</td></tr>
-  <tr><td style="${cell(9, 13, 'padding-top:16pt;')}">Vanderbilt Mortgage and Finance, Inc. NMLS #1561</td></tr>
+  ${f.showNmls ? `<tr><td style="${cell(9, 13, 'padding-top:16pt;')}">Vanderbilt Mortgage and Finance, Inc. NMLS #1561</td></tr>` : ''}
   ${legal2 ? `<tr><td style="${cell(9, 13)}">${legal2}</td></tr>` : ''}
 </table>`;
 }
