@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Email Signature Generator</title>
-<meta name="description" content="Vanderbilt Mortgage email signature generator — fill in your details and copy an Outlook-safe signature.">
+<title>Email signature generator | Vanderbilt Mortgage</title>
+<meta name="description" content="Create your Vanderbilt Mortgage email signature. Fill in your details, then copy it into Outlook.">
 <style>
   /* Tool chrome only. The SIGNATURE itself is built in JS with inline styles — see buildSignature(). */
   :root {
@@ -30,7 +30,7 @@
   .check { display: flex; align-items: center; gap: 8px; margin-top: 16px; cursor: pointer; }
   .check input { width: auto; margin: 0; accent-color: var(--blue); }
   #nmlsFields.off { display: none; }
-  .row { display: grid; grid-template-columns: 1fr 6rem; gap: 12px; }
+  .row { display: grid; grid-template-columns: 1fr 7rem; gap: 12px; }
   .preview { border: 1px solid var(--rule); border-radius: 8px; background: #fff; padding: 24px; overflow-x: auto; color-scheme: light; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   button { font: inherit; font-size: 14px; font-weight: 600; padding: 9px 16px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; }
@@ -52,8 +52,8 @@
 <body>
 <main>
   <section class="card">
-    <h1>Email signature</h1>
-    <p class="sub">Fill this in, then copy or download. Don’t edit the result inside Outlook — come back here and regenerate it.</p>
+    <h1>Your email signature</h1>
+    <p class="sub">Fill in your details, then copy or download your signature. If something changes later, update it here instead of in Outlook.</p>
     <form id="form" autocomplete="off">
       <fieldset class="brand">
         <legend>Brand</legend>
@@ -69,23 +69,23 @@
       <input id="department" name="department" value="Department">
       <div class="row">
         <div><label for="phone">Phone</label><input id="phone" name="phone" type="tel" value="000-000-0000"></div>
-        <div><label for="extension">Ext.</label><input id="extension" name="extension" value="0000"></div>
+        <div><label for="extension">Extension</label><input id="extension" name="extension" value="0000"></div>
       </div>
-      <label class="check"><input type="checkbox" id="showNmls" name="showNmls" checked> Licensed (show NMLS #s)</label>
-      <p class="hint" style="margin-top:2px">Off = no NMLS lines at all, including the company NMLS #1561 line. Only licensed Vanderbilt roles need them — defaults on for Vanderbilt, off for Clayton, but either brand can use either.</p>
+      <label class="check"><input type="checkbox" id="showNmls" name="showNmls" checked> I’m licensed (show NMLS numbers)</label>
+      <p class="hint" style="margin-top:2px">Licensed team members need their Nationwide Multistate Licensing System (NMLS) numbers in their signature. Turn this off and the signature leaves out every NMLS line, including the company line. It’s on by default for Vanderbilt and off for the Clayton brands, and you can change it for either.</p>
       <div id="nmlsFields">
-        <label for="nmls">Individual NMLS #</label>
+        <label for="nmls">Your NMLS number</label>
         <input id="nmls" name="nmls" value="000000">
         <label for="licenses">State licenses</label>
         <input id="licenses" name="licenses" value="AR: 000000 | CA: CA-DBO0000000 | CO: 0000000 | ID: MLO-0000000 | NM: 0000000 | NV: 000000 | OK: MLO00000">
-        <p class="hint">One line, separated by <code>|</code>. Shown after the NMLS #.</p>
+        <p class="hint">Enter them on one line, separated by <code>|</code>. They appear after your NMLS number.</p>
       </div>
 
       <details>
         <summary>Image hosting (advanced)</summary>
         <label for="base">Hosted site URL</label>
         <input id="base" name="base" placeholder="https://…">
-        <p class="hint">The folder this page is published in. The signature links to <code>assets/vanderbilt-mortgage-logo.png</code> and <code>assets/value-badges.png</code> there — email can’t embed files from your computer. Auto-detected when served over https.</p>
+        <p class="hint">The web address where this page is published. Your signature links to the logo and badge images there, because email can’t use files from your computer. We detect this automatically when the page is served over https.</p>
       </details>
     </form>
   </section>
@@ -93,21 +93,21 @@
   <div class="stack">
     <section class="card">
       <h2>Preview</h2>
-      <p class="sub">Arial on purpose — recipients won’t have the brand font, and Outlook substitutes fonts it can’t find. Shown on white, which is what most inboxes use.</p>
+      <p class="sub">We use Arial on purpose. Most people don’t have our brand font, and Outlook swaps in a different one when it can’t find it. The preview is on white because that’s what most inboxes use.</p>
       <div id="preview" class="preview"></div>
       <div class="actions">
         <button class="primary" id="copy" type="button">Copy for Outlook</button>
         <button class="outline" id="download" type="button">Download .htm</button>
-        <button class="ghost" id="source" type="button">Copy HTML source</button>
+        <button class="ghost" id="source" type="button">Copy HTML</button>
       </div>
-      <div id="notice" class="notice">This page isn’t being served from an <code>https://</code> address, so the copied signature points its images at a placeholder. Publish the site (or set the hosted URL under “Image hosting”) before people use it.</div>
+      <div id="notice" class="notice">This page isn’t published at an <code>https://</code> address yet, so the copied signature uses placeholder image links. Publish the page, or enter the hosted site URL under Image hosting, before anyone uses it.</div>
     </section>
 
     <section class="card install">
-      <h2>Installing it</h2>
-      <p><strong>Classic Outlook (Windows)</strong> — most reliable: click <em>Download .htm</em>, then put the file in <code>%APPDATA%\Microsoft\Signatures\</code>. Restart Outlook and pick it under File → Options → Mail → Signatures. Alternative: <em>Copy for Outlook</em>, open that same Signatures dialog, click into the editor, and paste.</p>
-      <p><strong>New Outlook, Outlook for Mac, Outlook on the web</strong> — <em>Copy for Outlook</em>, then Settings → Accounts → Signatures, click into the editor, paste.</p>
-      <p style="color:var(--muted)">Why it breaks when edited: Outlook re-saves the signature through Word’s HTML engine, which rewrites spacing and drops styles. Any change — even fixing a digit — should be made here and re-copied.</p>
+      <h2>Add it to Outlook</h2>
+      <p><strong>Classic Outlook (Windows):</strong> The most reliable option is <em>Download .htm</em>. Save the file in <code>%APPDATA%\Microsoft\Signatures\</code>, restart Outlook, and choose it under File → Options → Mail → Signatures. You can also use <em>Copy for Outlook</em>, open that same Signatures window, click into the editor, and paste.</p>
+      <p><strong>New Outlook, Outlook for Mac, and Outlook on the web:</strong> Use <em>Copy for Outlook</em>, then go to Settings → Accounts → Signatures, click into the editor, and paste.</p>
+      <p style="color:var(--muted)">Why you shouldn’t edit it in Outlook: Outlook rebuilds the signature with Word’s HTML engine every time you edit it, which changes the spacing and drops styles. Make every change here, even a single digit, and copy it again.</p>
     </section>
   </div>
 </main>
@@ -229,14 +229,14 @@ document.getElementById('copy').addEventListener('click', async () => {
       'text/html': new Blob([html], { type: 'text/html' }),
       'text/plain': new Blob([plain], { type: 'text/plain' }),
     })]);
-    toast('Copied — paste into Outlook’s signature editor');
+    toast('Copied. Now paste it into Outlook’s signature editor');
   } catch {
-    toast('Your browser blocked rich-text copy — use Download .htm');
+    toast('Your browser blocked the copy. Use Download .htm instead');
   }
 });
 document.getElementById('source').addEventListener('click', async () => {
   await navigator.clipboard.writeText(outputHtml());
-  toast('HTML source copied');
+  toast('HTML copied');
 });
 document.getElementById('download').addEventListener('click', () => {
   const f = fields();
