@@ -51,7 +51,7 @@ is the official PNG too; the Clayton one is rendered from the ui-library SVG for
   four brand logos, exported from one Photoshop canvas (`All logos.psd`, 1172×526) so
   they share alignment and quality. Resized to 320×144 (2× of the 160×72 display size)
   and palette-compressed with `pngquant`; each is a few KB.
-- `assets/value-badges.png` — official brand PNG 842×66, displayed at 525×41
+- `assets/value-badges.png` — 779×69 export (text optically centered), compressed, displayed at 525×46
 - `assets/favicon.svg` — the tool's browser-tab icon
 
 To update a logo: export from the PSD at full size, then

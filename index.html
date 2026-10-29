@@ -23,6 +23,8 @@
   label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 4px; }
   input { width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--ink); background: #fff; }
   input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
+  textarea { width: 100%; font: inherit; font-size: 15px; line-height: 1.4; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--ink); background: #fff; resize: vertical; min-height: 5.5em; }
+  textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
   .hint { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
   .brand { border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px 10px; margin: 4px 0 8px; display: flex; gap: 16px; flex-wrap: wrap; }
   .brand legend { font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 4px; }
@@ -79,8 +81,8 @@
         <label for="nmls">Your NMLS number</label>
         <input id="nmls" name="nmls" value="000000">
         <label for="licenses">State licenses</label>
-        <input id="licenses" name="licenses" value="AR: 000000 | CA: CA-DBO0000000 | CO: 0000000 | ID: MLO-0000000 | NM: 0000000 | NV: 000000 | OK: MLO00000">
-        <p class="hint">Enter them on one line, separated by <code>|</code>. They appear after your NMLS number.</p>
+        <textarea id="licenses" name="licenses" rows="4">AR: 000000 | CA: CA-DBO0000000 | CO: 0000000 | ID: MLO-0000000 | NM: 0000000 | NV: 000000 | OK: MLO00000</textarea>
+        <p class="hint">One per line, or separated by <code>|</code>. They appear after your NMLS number.</p>
       </div>
 
       <details>
@@ -136,7 +138,7 @@ const BRANDS = {
   claytonTech: { logo: { path: 'assets/clayton-tech.png', w: LOGO_W, h: LOGO_H }, alt: 'Clayton Tech',        site: 'claytonhomes.com',   nmlsDefault: false },
   homeFirst:   { logo: { path: 'assets/home-first.png',   w: LOGO_W, h: LOGO_H }, alt: 'HomeFirst Agency',    site: 'homefirstagency.com', nmlsDefault: false },
 };
-const BADGES = { path: 'assets/value-badges.png', w: 525, h: 41 };             // official PNG 842×66
+const BADGES = { path: 'assets/value-badges.png', w: 525, h: 46 };             // 779×69 export (v4): taller pills, text optically centered to offset the period's weight
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const tel = s => s.replace(/[^\d+]/g, '');
@@ -149,7 +151,9 @@ function buildSignature(f, base) {
   const line = (text, extra = '') => `<tr><td style="${cell(11, 15, extra)}">${text}</td></tr>`;
   const phone = f.phone ? `${esc(f.phone)}${f.extension ? ` x${esc(f.extension)}` : ''}` : '';
   const phoneHref = f.phone ? `tel:${tel(f.phone)}${f.extension ? `,${tel(f.extension)}` : ''}` : '';
-  const legal2 = f.showNmls ? [f.nmls && `NMLS #${esc(f.nmls)}`, f.licenses && esc(f.licenses)].filter(Boolean).join(' | ') : '';
+  // Licenses may be entered one per line or | separated; normalize to " | ".
+  const licenses = (f.licenses || '').split(/\s*(?:\||\n)\s*/).map(s => s.trim()).filter(Boolean).join(' | ');
+  const legal2 = f.showNmls ? [f.nmls && `NMLS #${esc(f.nmls)}`, licenses && esc(licenses)].filter(Boolean).join(' | ') : '';
   const img = (a, alt, extra = '') => `<img src="${base}${a.path}" width="${a.w}" height="${a.h}" alt="${alt}" style="display:block;border:0;width:${a.w}px;height:${a.h}px;${extra}" />`;
 
   // The name block is its own nested table so the wider badge/legal rows below
