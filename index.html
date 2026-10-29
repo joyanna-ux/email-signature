@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Email signature generator | Vanderbilt Mortgage</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <meta name="description" content="Create your Vanderbilt Mortgage email signature. Fill in your details, then copy it into Outlook.">
 <style>
   /* Tool chrome only. The SIGNATURE itself is built in JS with inline styles — see buildSignature(). */
@@ -60,6 +61,7 @@
         <label class="radio"><input type="radio" name="brand" value="vanderbilt" checked> Vanderbilt Mortgage</label>
         <label class="radio"><input type="radio" name="brand" value="clayton"> Clayton Homes</label>
         <label class="radio"><input type="radio" name="brand" value="claytonTech"> Clayton Tech</label>
+        <label class="radio"><input type="radio" name="brand" value="homeFirst"> HomeFirst Agency</label>
       </fieldset>
       <label for="name">Full name</label>
       <input id="name" name="name" value="First Last">
@@ -72,7 +74,7 @@
         <div><label for="extension">Extension</label><input id="extension" name="extension" value="0000"></div>
       </div>
       <label class="check"><input type="checkbox" id="showNmls" name="showNmls" checked> I’m licensed (show NMLS numbers)</label>
-      <p class="hint" style="margin-top:2px">Licensed team members need their Nationwide Multistate Licensing System (NMLS) numbers in their signature. Turn this off and the signature leaves out every NMLS line, including the company line. It’s on by default for Vanderbilt and off for the Clayton brands, and you can change it for either.</p>
+      <p class="hint" style="margin-top:2px">Licensed team members need their Nationwide Multistate Licensing System (NMLS) numbers in their signature. Turn this off and the signature leaves out every NMLS line, including the company line. It’s on by default for Vanderbilt and off for the other brands, and you can change it for any of them.</p>
       <div id="nmlsFields">
         <label for="nmls">Your NMLS number</label>
         <input id="nmls" name="nmls" value="000000">
@@ -124,10 +126,15 @@
 const BLUE = '#0071C8', FONT = 'Arial, Helvetica, sans-serif', RULE = '#91A6BA';
 // Paths are relative to the page's own directory so the tool works at a domain
 // root AND under a subpath (e.g. GitHub Pages' /email-signature/).
+// All four logos come from one Photoshop canvas (1172×526), exported at 320×144
+// (2× of the 160×72 display size) and palette-compressed, so they share
+// dimensions, alignment and quality.
+const LOGO_W = 160, LOGO_H = 72;
 const BRANDS = {
-  vanderbilt: { logo: { path: 'assets/vanderbilt-mortgage-logo.png', w: 150, h: 53 }, alt: 'Vanderbilt Mortgage', site: 'vmf.com', nmlsDefault: true },   // official PNG 939×334
-  clayton:    { logo: { path: 'assets/clayton-homes-logo.png', w: 150, h: 52 }, alt: 'Clayton Homes', site: 'claytonhomes.com', nmlsDefault: false },  // rendered from SVG, 600×209 — awaiting official PNG
-  claytonTech: { logo: { path: 'assets/clayton-tech-logo.png', w: 150, h: 65 }, alt: 'Clayton Tech', site: 'claytonhomes.com', nmlsDefault: false },    // official PNG 1096×476
+  vanderbilt:  { logo: { path: 'assets/vanderbilt.png',   w: LOGO_W, h: LOGO_H }, alt: 'Vanderbilt Mortgage', site: 'vmf.com',            nmlsDefault: true },
+  clayton:     { logo: { path: 'assets/clayton.png',      w: LOGO_W, h: LOGO_H }, alt: 'Clayton Homes',       site: 'claytonhomes.com',   nmlsDefault: false },
+  claytonTech: { logo: { path: 'assets/clayton-tech.png', w: LOGO_W, h: LOGO_H }, alt: 'Clayton Tech',        site: 'claytonhomes.com',   nmlsDefault: false },
+  homeFirst:   { logo: { path: 'assets/home-first.png',   w: LOGO_W, h: LOGO_H }, alt: 'HomeFirst Agency',    site: 'homefirstagency.com', nmlsDefault: false },
 };
 const BADGES = { path: 'assets/value-badges.png', w: 525, h: 41 };             // official PNG 842×66
 
@@ -149,7 +156,7 @@ function buildSignature(f, base) {
   // can't stretch its columns — that's what pushed the logo away from the rule.
   // The logo cell is a fixed width and right-aligned so the wordmark's right
   // edge sits a constant 18pt from the rule, mirroring the text's left edge.
-  const LOGO_CELL = LOGO.w + 24; // 150px + 18pt
+  const LOGO_CELL = LOGO.w + 24; // logo width + 18pt
   return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;${cell(11, 15)}">
   <tr><td style="padding:0;">
     <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">

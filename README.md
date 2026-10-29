@@ -47,15 +47,19 @@ is the official PNG too; the Clayton one is rendered from the ui-library SVG for
 ## Files
 
 - `index.html` — the whole tool (markup, styles, generator)
-- `assets/vanderbilt-mortgage-logo.png` — official brand PNG 939×334, displayed at 150×53
-- `assets/clayton-homes-logo.png` — 600×209, displayed at 150×52 (rendered from the
-  ui-library footer SVG in brand blue; replace with the official PNG when available)
-- `assets/clayton-tech-logo.png` — official brand PNG 1096×476, displayed at 150×65
+- `assets/vanderbilt.png`, `clayton.png`, `clayton-tech.png`, `home-first.png` — the
+  four brand logos, exported from one Photoshop canvas (`All logos.psd`, 1172×526) so
+  they share alignment and quality. Resized to 320×144 (2× of the 160×72 display size)
+  and palette-compressed with `pngquant`; each is a few KB.
 - `assets/value-badges.png` — official brand PNG 842×66, displayed at 525×41
+- `assets/favicon.svg` — the tool's browser-tab icon
 
-Brand toggle: Vanderbilt Mortgage (default), Clayton Homes, or Clayton Tech. It swaps
-the logo and the website link, and sets the "Licensed (show NMLS #s)" default — on for
-Vanderbilt, off for the Clayton brands — which can still be overridden either way.
+To update a logo: export from the PSD at full size, then
+`sips --resampleWidth 320 x.png --out x.png && pngquant --quality 80-98 --speed 1 --strip --force --output x.png x.png`.
+
+Brand toggle: Vanderbilt Mortgage (default), Clayton, Clayton Tech, or HomeFirst Agency.
+It swaps the logo and the website link, and sets the "Licensed (show NMLS #s)" default —
+on for Vanderbilt, off for the others — which can still be overridden for any brand.
 
 ## Install instructions (for the people using it)
 
