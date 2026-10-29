@@ -23,6 +23,10 @@
   input { width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--ink); background: #fff; }
   input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: var(--blue); }
   .hint { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+  .brand { border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px 10px; margin: 4px 0 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .brand legend { font-size: 12px; font-weight: 600; color: var(--muted); padding: 0 4px; }
+  .radio { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 500; cursor: pointer; }
+  .radio input { width: auto; margin: 0; accent-color: var(--blue); }
   .check { display: flex; align-items: center; gap: 8px; margin-top: 16px; cursor: pointer; }
   .check input { width: auto; margin: 0; accent-color: var(--blue); }
   #nmlsFields.off { display: none; }
@@ -51,6 +55,12 @@
     <h1>Email signature</h1>
     <p class="sub">Fill this in, then copy or download. Don’t edit the result inside Outlook — come back here and regenerate it.</p>
     <form id="form" autocomplete="off">
+      <fieldset class="brand">
+        <legend>Brand</legend>
+        <label class="radio"><input type="radio" name="brand" value="vanderbilt" checked> Vanderbilt Mortgage</label>
+        <label class="radio"><input type="radio" name="brand" value="clayton"> Clayton Homes</label>
+        <label class="radio"><input type="radio" name="brand" value="claytonTech"> Clayton Tech</label>
+      </fieldset>
       <label for="name">Full name</label>
       <input id="name" name="name" value="First Last">
       <label for="title">Job title</label>
@@ -62,7 +72,7 @@
         <div><label for="extension">Ext.</label><input id="extension" name="extension" value="0000"></div>
       </div>
       <label class="check"><input type="checkbox" id="showNmls" name="showNmls" checked> Licensed (show NMLS #s)</label>
-      <p class="hint" style="margin-top:2px">Off = no NMLS lines at all, including the company NMLS #1561 line. Only licensed roles need them.</p>
+      <p class="hint" style="margin-top:2px">Off = no NMLS lines at all, including the company NMLS #1561 line. Only licensed Vanderbilt roles need them — defaults on for Vanderbilt, off for Clayton, but either brand can use either.</p>
       <div id="nmlsFields">
         <label for="nmls">Individual NMLS #</label>
         <input id="nmls" name="nmls" value="000000">
@@ -114,13 +124,19 @@
 const BLUE = '#0071C8', FONT = 'Arial, Helvetica, sans-serif', RULE = '#91A6BA';
 // Paths are relative to the page's own directory so the tool works at a domain
 // root AND under a subpath (e.g. GitHub Pages' /email-signature/).
-const LOGO = { path: 'assets/vanderbilt-mortgage-logo.png', w: 150, h: 54 };   // 600×216 @2x
-const BADGES = { path: 'assets/value-badges.png', w: 525, h: 34 };             // 1050×67 @2x
+const BRANDS = {
+  vanderbilt: { logo: { path: 'assets/vanderbilt-mortgage-logo.png', w: 150, h: 53 }, alt: 'Vanderbilt Mortgage', site: 'vmf.com', nmlsDefault: true },   // official PNG 939×334
+  clayton:    { logo: { path: 'assets/clayton-homes-logo.png', w: 150, h: 52 }, alt: 'Clayton Homes', site: 'claytonhomes.com', nmlsDefault: false },  // rendered from SVG, 600×209 — awaiting official PNG
+  claytonTech: { logo: { path: 'assets/clayton-tech-logo.png', w: 150, h: 65 }, alt: 'Clayton Tech', site: 'claytonhomes.com', nmlsDefault: false },    // official PNG 1096×476
+};
+const BADGES = { path: 'assets/value-badges.png', w: 525, h: 41 };             // official PNG 842×66
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const tel = s => s.replace(/[^\d+]/g, '');
 
 function buildSignature(f, base) {
+  const brand = BRANDS[f.brand] || BRANDS.vanderbilt;
+  const LOGO = brand.logo;
   const cell = (pt, lh, extra = '') =>
     `font-family:${FONT};font-size:${pt}pt;line-height:${lh}pt;mso-line-height-rule:exactly;color:${BLUE};${extra}`;
   const line = (text, extra = '') => `<tr><td style="${cell(11, 15, extra)}">${text}</td></tr>`;
@@ -138,7 +154,7 @@ function buildSignature(f, base) {
   <tr><td style="padding:0;">
     <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
       <tr>
-        <td width="${LOGO_CELL}" align="right" valign="middle" style="width:${LOGO_CELL}px;padding:0 18pt 0 0;text-align:right;">${img(LOGO, 'Vanderbilt Mortgage', 'margin-left:auto;')}</td>
+        <td width="${LOGO_CELL}" align="right" valign="middle" style="width:${LOGO_CELL}px;padding:0 18pt 0 0;text-align:right;">${img(LOGO, brand.alt, 'margin-left:auto;')}</td>
         <td valign="middle" style="padding:0 0 0 18pt;border-left:1px solid ${RULE};">
           <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
             ${[
@@ -146,7 +162,7 @@ function buildSignature(f, base) {
               f.title && line(esc(f.title)),
               f.department && line(esc(f.department)),
               phone && line(`<a href="${phoneHref}" style="color:${BLUE};text-decoration:none;">${phone}</a>`),
-              line(`<a href="https://www.vmf.com" style="color:${BLUE};font-weight:bold;text-decoration:underline;">vmf.com</a>`, 'padding-top:8pt;'),
+              line(`<a href="https://www.${brand.site}" style="color:${BLUE};font-weight:bold;text-decoration:underline;">${brand.site}</a>`, 'padding-top:8pt;'),
             ].filter(Boolean).join('\n            ')}
           </table>
         </td>
@@ -199,11 +215,14 @@ function outputHtml() {
 function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 2200); }
 
 form.addEventListener('input', render);
+// Switching brand resets the NMLS toggle to that brand's default (Vanderbilt on, Clayton off);
+// the user can still flip it afterwards.
+for (const r of form.elements.brand) r.addEventListener('change', () => { form.elements.showNmls.checked = BRANDS[r.value].nmlsDefault; render(); });
 
 document.getElementById('copy').addEventListener('click', async () => {
   const f = fields();
   const html = outputHtml();
-  const plain = [f.name, f.title, f.department, f.phone, 'vmf.com'].filter(Boolean).join('\n');
+  const plain = [f.name, f.title, f.department, f.phone, (BRANDS[f.brand] || BRANDS.vanderbilt).site].filter(Boolean).join('\n');
   try {
     // text/html on the clipboard is what makes Outlook paste a rendered table instead of code.
     await navigator.clipboard.write([new ClipboardItem({
@@ -234,7 +253,8 @@ try {
   const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
   if (saved) for (const [k, v] of Object.entries(saved)) {
     const el = form.elements[k]; if (!el) continue;
-    if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
+    if (el.type === 'checkbox') el.checked = !!v;
+    else el.value = v;
   }
 } catch {}
 render();

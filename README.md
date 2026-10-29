@@ -41,14 +41,21 @@ survives a paste *and* a later edit:
 - link color and `text-decoration` set on each `<a>`
 
 The design's skewed value badges can't be drawn this way, so they ship as one
-PNG (`assets/value-badges.png`, rendered in CinaGEO at 2x). The wordmark is
-`assets/vanderbilt-mortgage-logo.png`, from the SVG in the ui-library repo.
+PNG (`assets/value-badges.png`, the official brand asset). The Vanderbilt wordmark
+is the official PNG too; the Clayton one is rendered from the ui-library SVG for now.
 
 ## Files
 
 - `index.html` — the whole tool (markup, styles, generator)
-- `assets/vanderbilt-mortgage-logo.png` — 600×216, displayed at 150×54
-- `assets/value-badges.png` — 1050×67, displayed at 525×34
+- `assets/vanderbilt-mortgage-logo.png` — official brand PNG 939×334, displayed at 150×53
+- `assets/clayton-homes-logo.png` — 600×209, displayed at 150×52 (rendered from the
+  ui-library footer SVG in brand blue; replace with the official PNG when available)
+- `assets/clayton-tech-logo.png` — official brand PNG 1096×476, displayed at 150×65
+- `assets/value-badges.png` — official brand PNG 842×66, displayed at 525×41
+
+Brand toggle: Vanderbilt Mortgage (default), Clayton Homes, or Clayton Tech. It swaps
+the logo and the website link, and sets the "Licensed (show NMLS #s)" default — on for
+Vanderbilt, off for the Clayton brands — which can still be overridden either way.
 
 ## Install instructions (for the people using it)
 
